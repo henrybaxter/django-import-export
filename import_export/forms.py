@@ -5,6 +5,7 @@ import os.path
 from django import forms
 from django.contrib.admin.helpers import ActionForm
 from django.utils.translation import ugettext_lazy as _
+from django.conf import settings
 
 
 class ImportForm(forms.Form):
@@ -19,9 +20,16 @@ class ImportForm(forms.Form):
     def __init__(self, import_formats, *args, **kwargs):
         super(ImportForm, self).__init__(*args, **kwargs)
         choices = []
+        default_format = None
+        if hasattr(settings, 'IMPORT_EXPORT_OPTIONS'):
+            default_format = settings.IMPORT_EXPORT_OPTIONS['default_import_format']
         for i, f in enumerate(import_formats):
-            choices.append((str(i), f().get_title(),))
-        if len(import_formats) > 1:
+            current_format = f().get_title()
+            choices.append((str(i), current_format,))
+            if current_format == default_format:
+                self.fields['input_format'].initial = choices[i]
+
+        if not default_format and len(import_formats) > 1:
             choices.insert(0, ('', '---'))
 
         self.fields['input_format'].choices = choices
@@ -47,9 +55,16 @@ class ExportForm(forms.Form):
     def __init__(self, formats, *args, **kwargs):
         super(ExportForm, self).__init__(*args, **kwargs)
         choices = []
+        default_format = None
+        if hasattr(settings, 'IMPORT_EXPORT_OPTIONS'):
+            default_format = settings.IMPORT_EXPORT_OPTIONS['default_export_format']
         for i, f in enumerate(formats):
-            choices.append((str(i), f().get_title(),))
-        if len(formats) > 1:
+            current_format = f().get_title()
+            choices.append((str(i), current_format,))
+            if current_format == default_format:
+                self.fields['file_format'].initial = choices[i]
+
+        if not default_format and len(formats) > 1:
             choices.insert(0, ('', '---'))
 
         self.fields['file_format'].choices = choices
