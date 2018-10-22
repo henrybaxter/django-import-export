@@ -124,6 +124,8 @@ class DeclarativeMetaclass(type):
     def __new__(cls, name, bases, attrs):
         declared_fields = []
         meta = ResourceOptions()
+        for key, value in getattr(settings, 'IMPORT_EXPORT_OPTIONS', {}).items():
+            setattr(meta, key, value)
 
         # If this class is subclassing another Resource, add that Resource's
         # fields. Note that we loop over the bases in *reverse*. This is
